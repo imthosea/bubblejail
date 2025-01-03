@@ -699,11 +699,11 @@ class RootShare(BubblejailService):
     def iter_bwrap_options(self) -> ServiceGeneratorType:
         settings = self.context.get_settings(RootShare.Settings)
 
-        for x in settings.paths:
-            yield Bind(x)
-
         for x in settings.read_only_paths:
             yield ReadOnlyBind(x)
+
+        for x in settings.paths:
+            yield Bind(x)
 
     name = "root_share"
     pretty_name = "Root share"

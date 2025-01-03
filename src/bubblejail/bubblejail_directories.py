@@ -223,80 +223,8 @@ class BubblejailDirectories:
         desktop_entry_name: Optional[str] = None,
         new_name: Optional[str] = None,
     ) -> None:
-
-        instance = cls.instance_get(instance_name)
-
-        # Five ways to figure out desktop entry path
-        if desktop_entry_name is not None:
-            # 1. Desktop entry path was passed.
-            # 2. Desktop entry name was passed
-            dot_desktop_path = cls.desktop_entry_name_to_path(desktop_entry_name)
-        elif profile_object is not None:
-            # 3. Profile was passed directly
-            profile = profile_object
-            dot_desktop_path = profile.find_desktop_entry()
-        elif profile_name is not None:
-            # 4. Profile name was passed
-            profile = cls.profile_get(profile_name)
-            dot_desktop_path = profile.find_desktop_entry()
-        elif instance.metadata_creation_profile_name is not None:
-            # 5. Use the profile name saved in meta data
-            profile = cls.profile_get(instance.metadata_creation_profile_name)
-            dot_desktop_path = profile.find_desktop_entry()
-        else:
-            raise RuntimeError("No profile or desktop entry specified")
-
-        if dot_desktop_path is None:
-            raise RuntimeError("Couldn't resolve desktop entry path.")
-
-        new_dot_desktop = IniFile.IniFile(filename=str(dot_desktop_path))
-
-        for group_name in new_dot_desktop.groups():
-            # Modify Exec
-            old_exec = new_dot_desktop.get(key="Exec", group=group_name)
-            if not old_exec:
-                continue
-
-            new_dot_desktop.set(
-                key="Exec",
-                value=(
-                    f"bubblejail run -- {instance_name} "
-                    f"{' '.join(old_exec.split())}"
-                ),
-                group=group_name,
-            )
-
-        # Modify name
-        new_dot_desktop.set(
-            key="Name",
-            group="Desktop Entry",
-            value=f"{instance_name} bubble",
-        )
-
-        # Three ways to resolve what file to write to
-        new_dot_desktop_path = cls.desktop_entries_dir_get() / dot_desktop_path.name
-        if not new_dot_desktop_path.exists():
-            # 1. If the entry under same name as the one
-            #  we are overwriting does not exist use the same name
-            #  and write meta data
-            instance.metadata_desktop_entry_name = dot_desktop_path.name
-        elif instance.metadata_desktop_entry_name == dot_desktop_path.name:
-            # 2. If the instance already occupies the same name
-            # keep the name
-            ...
-        else:
-            # 3. Use the generic name
-            new_dot_desktop_path = (
-                cls.desktop_entries_dir_get() / f"bubble_{instance_name}.desktop"
-            )
-
-        new_dot_desktop.write(filename=str(new_dot_desktop_path))
-
-        # Update desktop MIME database
-        # Requires `update-desktop-database` binary
-        # Arch package desktop-file-utils
-        print("Updating desktop MIME database", file=stderr)
-        cls.update_mime_database()
+        print("Skipped writing desktop entry")
+        pass
 
     @classmethod
     def update_mime_database(cls) -> None:
@@ -319,29 +247,5 @@ class BubblejailDirectories:
         cls,
         instance_name: str,
     ) -> None:
-
-        new_dot_desktop = IniFile.IniFile()
-        new_dot_desktop.addGroup("Desktop Entry")
-        new_dot_desktop.set(
-            key="Exec", value=f"bubblejail run {instance_name}", group="Desktop Entry"
-        )
-
-        # Modify name
-        new_dot_desktop.set(
-            key="Name",
-            group="Desktop Entry",
-            value=f"{instance_name} bubble",
-        )
-
-        # Add type
-        new_dot_desktop.set(
-            key="Type",
-            group="Desktop Entry",
-            value="Application",
-        )
-
-        new_dot_desktop_path_str = str(
-            cls.desktop_entries_dir_get() / f"bubble_{instance_name}.desktop"
-        )
-
-        new_dot_desktop.write(filename=new_dot_desktop_path_str)
+        print("Skipped writing desktop entry")
+        pass
